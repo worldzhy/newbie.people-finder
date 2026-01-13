@@ -1,6 +1,6 @@
 import {Logger, Injectable, BadRequestException} from '@nestjs/common';
 import {HttpService} from '@nestjs/axios';
-import {Prisma} from '@prisma/client';
+import {Prisma} from '@generated/prisma/client';
 import {PrismaService} from '@framework/prisma/prisma.service';
 import {
   PeopleFinderStatus,
@@ -59,10 +59,7 @@ export class PeopleFinderService {
     const res = await this.prisma.peopleFinderCallThirdParty.findFirst({
       where: {
         status: {
-          notIn: [
-            PeopleFinderStatus.deleted,
-            PeopleFinderStatus.parameterError,
-          ],
+          notIn: [PeopleFinderStatus.deleted, PeopleFinderStatus.parameterError],
         },
         source: platform,
         userId: data.userId,
@@ -106,10 +103,7 @@ export class PeopleFinderService {
     return {taskBatchId: newTaskBatch.id};
   }
 
-  async getTaskBatchTasks(
-    batchId: string,
-    options: {status?: PeopleFinderTaskStatus} = {}
-  ) {
+  async getTaskBatchTasks(batchId: string, options: {status?: PeopleFinderTaskStatus} = {}) {
     const taskBatch = await this.prisma.peopleFinderTaskBatch.findFirst({
       where: {
         batchId,
@@ -126,13 +120,7 @@ export class PeopleFinderService {
     });
   }
 
-  async checkTaskBatchStatus({
-    batchId,
-    taskBatchId,
-  }: {
-    batchId?: string;
-    taskBatchId?: number;
-  }) {
+  async checkTaskBatchStatus({batchId, taskBatchId}: {batchId?: string; taskBatchId?: number}) {
     const taskBatch = await this.prisma.peopleFinderTaskBatch.findFirst({
       where: taskBatchId
         ? {id: taskBatchId}
@@ -192,14 +180,10 @@ export class PeopleFinderService {
       resultList.map(item => {
         if (item.emails && item.emails.length) {
           if (item.source === PeopleFinderPlatforms.voilanorbert) {
-            item.emails = item.emails.map(
-              (emailCon: {email: string; score: number}) => emailCon.email
-            );
+            item.emails = item.emails.map((emailCon: {email: string; score: number}) => emailCon.email);
           }
           if (item.source === PeopleFinderPlatforms.peopledatalabs) {
-            item.emails = item.emails.map(
-              (emailCon: {address: string; type: string}) => emailCon.address
-            );
+            item.emails = item.emails.map((emailCon: {address: string; type: string}) => emailCon.address);
           }
           emails = emails.concat(item.emails as string[]);
         }
@@ -228,15 +212,9 @@ export class PeopleFinderService {
       },
     });
 
-    if (
-      taskBatch?.callbackUrl &&
-      taskBatch.callbackStatus !== PeopleFinderBatchTaskCallBackStatus.completed
-    ) {
+    if (taskBatch?.callbackUrl && taskBatch.callbackStatus !== PeopleFinderBatchTaskCallBackStatus.completed) {
       this.httpService.axiosRef
-        .post<{batchId: string}, {status: number; data: string}>(
-          taskBatch?.callbackUrl,
-          {batchId: taskBatch.batchId}
-        )
+        .post<{batchId: string}, {status: number; data: string}>(taskBatch?.callbackUrl, {batchId: taskBatch.batchId})
         .then(async res => {
           if (res.status >= 200 && res.status < 300) {
             await this.prisma.peopleFinderTaskBatch.update({
@@ -250,10 +228,7 @@ export class PeopleFinderService {
               message: `[callback error] url:${taskBatch?.callbackUrl}, batchId:${taskBatch.batchId}`,
             });
           }
-          this.logger.log(
-            'checkAndExecuteTaskBatchCallback: ' + JSON.stringify(res.data),
-            this.loggerContext
-          );
+          this.logger.log('checkAndExecuteTaskBatchCallback: ' + JSON.stringify(res.data), this.loggerContext);
         })
         .catch(async e => {
           this.peopleFinderNotification.send({
@@ -266,8 +241,7 @@ export class PeopleFinderService {
             },
           });
           this.logger.error(
-            'checkAndExecuteTaskBatchCallback catch: ' +
-              JSON.stringify({error: e}),
+            'checkAndExecuteTaskBatchCallback catch: ' + JSON.stringify({error: e}),
             this.loggerContext
           );
         });

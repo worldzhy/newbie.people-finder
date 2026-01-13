@@ -1,16 +1,11 @@
 import {Logger, Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {PrismaService} from '@framework/prisma/prisma.service';
-import {Prisma} from '@prisma/client';
+import {Prisma} from '@generated/prisma/client';
 import * as ProxycurlApi from 'proxycurl-js-linkedin-profile-scraper';
 import {PeopleFinderNotificationService} from '../people-finder.notification.service';
 import {PeopleFinderCallThirdPartyDto} from '../people-finder.dto';
-import {
-  PeopleFinderStatus,
-  PeopleFinderPlatforms,
-  SearchFilter,
-  PeopleFinderSourceMode,
-} from '../constants';
+import {PeopleFinderStatus, PeopleFinderPlatforms, SearchFilter, PeopleFinderSourceMode} from '../constants';
 import {
   SearchPeopleLinkedinReqDto,
   SearchPeopleByLinkedinRes,
@@ -32,9 +27,7 @@ export class ProxycurlService {
     private readonly logger: Logger,
     private peopleFinderNotification: PeopleFinderNotificationService
   ) {
-    this.apiKey = this.configService.getOrThrow<string>(
-      'microservices.peopleFinder.proxycurl.apiKey'
-    );
+    this.apiKey = this.configService.getOrThrow<string>('microservices.peopleFinder.proxycurl.apiKey');
     const defaultClient = ProxycurlApi.ApiClient.instance;
     // Configure Bearer access token for authorization: BearerAuth
     const BearerAuth = defaultClient.authentications['BearerAuth'];
@@ -84,16 +77,14 @@ export class ProxycurlService {
               const resError = {error};
               resolve({error: resError, spent});
               this.logger.error(
-                'Proxycurl searchPeopleLinkedin error: ' +
-                  JSON.stringify(resError),
+                'Proxycurl searchPeopleLinkedin error: ' + JSON.stringify(resError),
                 this.loggerContext
               );
             } else {
               // response.body has more details
               resolve({res: response.body, spent});
               this.logger.log(
-                'Proxycurl searchPeopleLinkedin success: ' +
-                  JSON.stringify(response.body),
+                'Proxycurl searchPeopleLinkedin success: ' + JSON.stringify(response.body),
                 this.loggerContext
               );
             }
@@ -132,11 +123,7 @@ export class ProxycurlService {
           },
           (error, data: SearchPeopleByLinkedinRes, response) => {
             let spent = 0;
-            if (
-              response &&
-              response.header &&
-              response.header['x-proxycurl-credit-cost']
-            ) {
+            if (response && response.header && response.header['x-proxycurl-credit-cost']) {
               try {
                 spent = Number(response.header['x-proxycurl-credit-cost']);
               } catch (e) {
@@ -147,17 +134,12 @@ export class ProxycurlService {
               const resError = {error};
               resolve({error: resError, spent});
               this.logger.error(
-                'Proxycurl searchPeopleByLinkedin error: ' +
-                  JSON.stringify(resError),
+                'Proxycurl searchPeopleByLinkedin error: ' + JSON.stringify(resError),
                 this.loggerContext
               );
             } else {
               resolve({res: data, spent});
-              this.logger.log(
-                'Proxycurl searchPeopleByLinkedin success: ' +
-                  JSON.stringify(data),
-                this.loggerContext
-              );
+              this.logger.log('Proxycurl searchPeopleByLinkedin success: ' + JSON.stringify(data), this.loggerContext);
             }
           }
         );
@@ -181,10 +163,7 @@ export class ProxycurlService {
   }) => {
     const resError = {error, spent: 0};
     resolve({error: resError});
-    this.logger.error(
-      errorTitle + JSON.stringify(resError),
-      this.loggerContext
-    );
+    this.logger.error(errorTitle + JSON.stringify(resError), this.loggerContext);
   };
 
   /**
@@ -228,10 +207,7 @@ export class ProxycurlService {
         updateData.status = PeopleFinderStatus.failed;
         updateData.ctx = error as object;
         // notification webhook
-        if (
-          error.error &&
-          error.error.status === ErrorStatus.INSUFFICIENT_CREDITS
-        ) {
+        if (error.error && error.error.status === ErrorStatus.INSUFFICIENT_CREDITS) {
           await this.peopleFinderNotification.send({
             message: '[proxycurl] Not have enough credits',
           });
@@ -241,11 +217,9 @@ export class ProxycurlService {
         updateData.emails = res.personal_emails;
         updateData.phones = res.personal_numbers;
 
-        if (updateData.emails && updateData.emails.length)
-          dataFlag.email = true;
+        if (updateData.emails && updateData.emails.length) dataFlag.email = true;
 
-        if (updateData.phones && updateData.phones.length)
-          dataFlag.phone = true;
+        if (updateData.phones && updateData.phones.length) dataFlag.phone = true;
 
         updateData.status = PeopleFinderStatus.completed;
         updateData.ctx = res as object;
@@ -280,10 +254,7 @@ export class ProxycurlService {
         updateData.status = PeopleFinderStatus.failed;
         updateData.ctx = error as object;
         // notification webhook
-        if (
-          error.error &&
-          error.error.status === ErrorStatus.INSUFFICIENT_CREDITS
-        ) {
+        if (error.error && error.error.status === ErrorStatus.INSUFFICIENT_CREDITS) {
           await this.peopleFinderNotification.send({
             message: '[proxycurl] Not have enough credits',
           });

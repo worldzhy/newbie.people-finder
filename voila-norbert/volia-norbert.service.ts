@@ -2,14 +2,10 @@ import {HttpService} from '@nestjs/axios';
 import {Logger, Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {PrismaService} from '@framework/prisma/prisma.service';
-import {Prisma} from '@prisma/client';
+import {Prisma} from '@generated/prisma/client';
 import {PeopleFinderCallThirdPartyDto} from '../people-finder.dto';
 import {PeopleFinderNotificationService} from '../people-finder.notification.service';
-import {
-  PeopleFinderStatus,
-  PeopleFinderPlatforms,
-  PeopleFinderSourceMode,
-} from '../constants';
+import {PeopleFinderStatus, PeopleFinderPlatforms, PeopleFinderSourceMode} from '../constants';
 import {
   SearchEmailByDomainReqDto,
   SearchEmailResDto,
@@ -39,9 +35,7 @@ export class VoilaNorbertService {
     private peopleFinderNotification: PeopleFinderNotificationService,
     private readonly logger: Logger
   ) {
-    this.apiKey = this.configService.getOrThrow<string>(
-      'microservices.peopleFinder.voilanorbert.apiKey'
-    );
+    this.apiKey = this.configService.getOrThrow<string>('microservices.peopleFinder.voilanorbert.apiKey');
     this.reqConfig = {
       auth: {
         username: 'inception',
@@ -81,17 +75,12 @@ export class VoilaNorbertService {
       };
       let noCredits = false;
       this.httpService.axiosRef
-        .post<SearchEmailByDomainReqDto, SearchEmailThirdResDto>(
-          url,
-          data,
-          this.reqConfig
-        )
+        .post<SearchEmailByDomainReqDto, SearchEmailThirdResDto>(url, data, this.reqConfig)
         .then(async (res: SearchEmailThirdResDto) => {
           if (res.status === VoliaNorbertStatus.SUCCESS) {
             resolve({res: res.data});
             this.logger.log(
-              'VoliaNorbert searchEmailByDomain success: ' +
-                JSON.stringify(res.data),
+              'VoliaNorbert searchEmailByDomain success: ' + JSON.stringify(res.data),
               this.loggerContext
             );
           } else {
@@ -105,8 +94,7 @@ export class VoilaNorbertService {
             const resError = {error: res.data, status: res.status};
             resolve({error: resError, noCredits});
             this.logger.error(
-              'VoliaNorbert searchEmailByDomain error: ' +
-                JSON.stringify(resError),
+              'VoliaNorbert searchEmailByDomain error: ' + JSON.stringify(resError),
               this.loggerContext
             );
           }
@@ -114,11 +102,7 @@ export class VoilaNorbertService {
         .catch(e => {
           const resError = {error: e.response.data};
           resolve({error: resError, noCredits});
-          this.logger.error(
-            'VoliaNorbert searchEmailByDomain error: ' +
-              JSON.stringify(resError),
-            this.loggerContext
-          );
+          this.logger.error('VoliaNorbert searchEmailByDomain error: ' + JSON.stringify(resError), this.loggerContext);
         });
     });
   }
@@ -147,19 +131,11 @@ export class VoilaNorbertService {
       webhook: webhook + newRecord.id,
     });
 
-    const result = await this.voilanorbertContactSearchCallback(
-      newRecord.id,
-      res,
-      error
-    );
+    const result = await this.voilanorbertContactSearchCallback(newRecord.id, res, error);
     return {...result, noCredits};
   }
 
-  async voilanorbertContactSearchCallback(
-    id: number,
-    data?: SearchEmailContentResDto,
-    error?: object
-  ) {
+  async voilanorbertContactSearchCallback(id: number, data?: SearchEmailContentResDto, error?: object) {
     const dataFlag = {
       email: false,
     };
@@ -173,8 +149,7 @@ export class VoilaNorbertService {
         updateData.emails = data.email ? [data.email as object] : [];
         updateData.status = PeopleFinderStatus.completed;
 
-        if (updateData.emails && updateData.emails.length)
-          dataFlag.email = true;
+        if (updateData.emails && updateData.emails.length) dataFlag.email = true;
       }
       updateData.ctx = data as object;
     }

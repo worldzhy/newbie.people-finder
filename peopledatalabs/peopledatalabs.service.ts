@@ -2,7 +2,7 @@ import {Logger, Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import * as PDLJS from 'peopledatalabs';
 import {PrismaService} from '@framework/prisma/prisma.service';
-import {Prisma} from '@prisma/client';
+import {Prisma} from '@generated/prisma/client';
 import {PeopleFinderCallThirdPartyDto} from '../people-finder.dto';
 import {PeopleFinderNotificationService} from '../people-finder.notification.service';
 import {
@@ -12,12 +12,7 @@ import {
   SearchPeopleByLinkedinReqDto,
   PeopledatalabsStatus,
 } from './peopledatalabs.dto';
-import {
-  PeopleFinderStatus,
-  PeopleFinderPlatforms,
-  SearchFilter,
-  PeopleFinderSourceMode,
-} from '../constants';
+import {PeopleFinderStatus, PeopleFinderPlatforms, SearchFilter, PeopleFinderSourceMode} from '../constants';
 
 export * from './peopledatalabs.dto';
 
@@ -33,9 +28,7 @@ export class PeopledatalabsService {
     private peopleFinderNotification: PeopleFinderNotificationService,
     private readonly logger: Logger
   ) {
-    this.apiKey = this.configService.getOrThrow<string>(
-      'microservices.peopleFinder.peopledatalabs.apiKey'
-    );
+    this.apiKey = this.configService.getOrThrow<string>('microservices.peopleFinder.peopledatalabs.apiKey');
     // @ts-ignore
     this.api = new PDLJS({apiKey: this.apiKey});
 
@@ -94,16 +87,14 @@ export class PeopledatalabsService {
             if (res.status === PeopledatalabsStatus.SUCCESS) {
               resolve({res: res});
               this.logger.log(
-                'Peopledatalabs searchPeopleByDomain success: ' +
-                  JSON.stringify(res),
+                'Peopledatalabs searchPeopleByDomain success: ' + JSON.stringify(res),
                 this.loggerContext
               );
             } else {
               const resError = {error: res.status, ctx: res};
               resolve({error: resError});
               this.logger.error(
-                'Peopledatalabs searchPeopleByDomain error: ' +
-                  JSON.stringify(resError),
+                'Peopledatalabs searchPeopleByDomain error: ' + JSON.stringify(resError),
                 this.loggerContext
               );
             }
@@ -132,9 +123,7 @@ export class PeopledatalabsService {
    * https://docs.peopledatalabs.com/docs/quickstart-person-enrichment-api
    * 1 credit
    */
-  async searchPeopleByLinkedin({
-    linkedinUrl,
-  }: SearchPeopleByLinkedinReqDto): Promise<SearchPeopleResDto> {
+  async searchPeopleByLinkedin({linkedinUrl}: SearchPeopleByLinkedinReqDto): Promise<SearchPeopleResDto> {
     return new Promise(resolve => {
       const params = {
         profile: linkedinUrl,
@@ -147,16 +136,14 @@ export class PeopledatalabsService {
             if (res.status === PeopledatalabsStatus.SUCCESS) {
               resolve({res});
               this.logger.log(
-                'Peopledatalabs searchPeopleByLinkedin success: ' +
-                  JSON.stringify(res),
+                'Peopledatalabs searchPeopleByLinkedin success: ' + JSON.stringify(res),
                 this.loggerContext
               );
             } else {
               const resError = {error: res.status, ctx: res};
               resolve({error: resError});
               this.logger.error(
-                'Peopledatalabs searchPeopleByLinkedin error: ' +
-                  JSON.stringify(resError),
+                'Peopledatalabs searchPeopleByLinkedin error: ' + JSON.stringify(resError),
                 this.loggerContext
               );
             }
@@ -189,10 +176,7 @@ export class PeopledatalabsService {
   }) => {
     const resError = {error};
     resolve({error: resError});
-    this.logger.error(
-      errorTitle + JSON.stringify(resError),
-      this.loggerContext
-    );
+    this.logger.error(errorTitle + JSON.stringify(resError), this.loggerContext);
   };
 
   /**
@@ -228,10 +212,7 @@ export class PeopledatalabsService {
           updateData.status = PeopleFinderStatus.failed;
           updateData.ctx = error as object;
           // notification webhook
-          if (
-            error.error &&
-            error.error.status === PeopledatalabsStatus.PAYMENT_REQUIRED
-          ) {
+          if (error.error && error.error.status === PeopledatalabsStatus.PAYMENT_REQUIRED) {
             await this.peopleFinderNotification.send({
               message: '[peopledatalabs] Not have enough credits',
             });
@@ -241,18 +222,14 @@ export class PeopledatalabsService {
           updateData.spent = res.rateLimit.callCreditsSpent;
           if (res.data) {
             updateData.emails = res.data.emails as object[];
-            updateData.phones = res.data.phone_numbers
-              ? res.data.phone_numbers
-              : [];
+            updateData.phones = res.data.phone_numbers ? res.data.phone_numbers : [];
             if (res.data.mobile_phone) {
               updateData.phones.push(res.data.mobile_phone);
             }
 
-            if (updateData.emails && updateData.emails.length)
-              dataFlag.email = true;
+            if (updateData.emails && updateData.emails.length) dataFlag.email = true;
 
-            if (updateData.phones && updateData.phones.length)
-              dataFlag.phone = true;
+            if (updateData.phones && updateData.phones.length) dataFlag.phone = true;
 
             updateData.status = PeopleFinderStatus.completed;
             updateData.ctx = res as object;
@@ -330,10 +307,7 @@ export class PeopledatalabsService {
           updateData.status = PeopleFinderStatus.failed;
           updateData.ctx = error as object;
           // notification webhook
-          if (
-            error.error &&
-            error.error.status === PeopledatalabsStatus.PAYMENT_REQUIRED
-          ) {
+          if (error.error && error.error.status === PeopledatalabsStatus.PAYMENT_REQUIRED) {
             await this.peopleFinderNotification.send({
               message: '[peopledatalabs] Not have enough credits',
             });
