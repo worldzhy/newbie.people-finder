@@ -1,6 +1,6 @@
 import {Logger, Injectable} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
-import * as PDLJS from 'peopledatalabs';
+import PDLJS from 'peopledatalabs';
 import {PrismaService} from '@framework/prisma/prisma.service';
 import {Prisma} from '@generated/prisma/client';
 import {PeopleFinderCallThirdPartyDto} from '../people-finder.dto';
@@ -30,7 +30,7 @@ export class PeopledatalabsService {
   ) {
     this.apiKey = this.configService.getOrThrow<string>('microservices.peopleFinder.peopledatalabs.apiKey');
     // @ts-ignore
-    this.api = new PDLJS({apiKey: this.apiKey});
+    this.api = PDLJS({apiKey: this.apiKey});
 
     // this.searchPeopleByDomain({
     //   fullName: 'Jovan Bethell',
